@@ -1,0 +1,96 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2212                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale 1;
+
+// Drum dimensions
+radius      0.725;    // 1.45m diameter
+length      4.0;      // 4.0m length
+nRadial     20;       // Number of cells in radial direction
+nAxial      80;       // Number of cells in axial direction
+nCircum     40;       // Number of cells in circumferential direction
+
+vertices
+(
+    // Bottom vertices
+    (0 0 0)                                              // 0
+    ($radius 0 0)                                        // 1
+    (0 $radius 0)                                        // 2
+    (#calc "-1.0*$radius") 0 0)                         // 3
+    (0 #calc "-1.0*$radius" 0)                          // 4
+    
+    // Top vertices
+    (0 0 $length)                                        // 5
+    ($radius 0 $length)                                  // 6
+    (0 $radius $length)                                  // 7
+    (#calc "-1.0*$radius" 0 $length)                    // 8
+    (0 #calc "-1.0*$radius" $length)                    // 9
+);
+
+blocks
+(
+    hex (0 1 2 3 5 6 7 8)
+    ($nRadial $nRadial $nAxial)
+    simpleGrading (1 1 1)
+);
+
+edges
+(
+    arc 1 2 (#calc "$radius*0.7071067812" #calc "$radius*0.7071067812" 0)
+    arc 2 3 (#calc "-$radius*0.7071067812" #calc "$radius*0.7071067812" 0)
+    arc 3 4 (#calc "-$radius*0.7071067812" #calc "-$radius*0.7071067812" 0)
+    arc 4 1 (#calc "$radius*0.7071067812" #calc "-$radius*0.7071067812" 0)
+    
+    arc 6 7 (#calc "$radius*0.7071067812" #calc "$radius*0.7071067812" $length)
+    arc 7 8 (#calc "-$radius*0.7071067812" #calc "$radius*0.7071067812" $length)
+    arc 8 9 (#calc "-$radius*0.7071067812" #calc "-$radius*0.7071067812" $length)
+    arc 9 6 (#calc "$radius*0.7071067812" #calc "-$radius*0.7071067812" $length)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 1 2 3)
+        );
+    }
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (5 6 7 8)
+        );
+    }
+    walls
+    {
+        type wall;
+        faces
+        (
+            (1 2 7 6)
+            (2 3 8 7)
+            (3 4 9 8)
+            (4 1 6 9)
+        );
+    }
+);
+
+mergePatchPairs
+(
+); 
